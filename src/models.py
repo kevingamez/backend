@@ -2,6 +2,8 @@ from sqlalchemy import Boolean, Column, ForeignKey, Integer, String, Float, Enum
 from database import Base
 import enum
 from pydantic import BaseModel
+from typing import Optional
+
 
 
 class User(Base):
@@ -10,7 +12,7 @@ class User(Base):
     id = Column(Integer, primary_key=True, index=True)
     username = Column(String, unique=True, index=True)
     password = Column(String)
-    country = Column(String)
+    country = Column(String, nullable=True)
     
     
 class Item(Base):
@@ -23,7 +25,7 @@ class Item(Base):
 class RecomendationStatus(enum.Enum):
     positive = 'positive'
     negative = 'negative'
-    undefined = None
+    undefined = 'undefined'
     user_id = Column(Integer, ForeignKey('users.id'))
     item_id = Column(Integer, ForeignKey('songs.id'))
 
@@ -47,7 +49,7 @@ class Interactions(Base):
 class UserResponse(BaseModel):
     id: int
     username: str
-    country: str
+    country: Optional[str]
     
 class ItemResponse(BaseModel):
     id: int

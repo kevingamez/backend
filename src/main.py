@@ -145,6 +145,11 @@ def get_user_recomendations(user_id: int, db: db_dependency):
     recomendations = db.query(models.Recomendation).filter(models.Recomendation.user_id == user_id).all()
     return recomendations
 
+@app.get('/user/{user_id}/interactions/', response_model=List[models.InteractionsResponse])
+def get_user_interactions(user_id: int, db: db_dependency):
+    interactions = db.query(models.Interactions).filter(models.Interactions.user_id == user_id).all()
+    return interactions
+
 @app.get('/songs/random/', response_model=List[models.ItemResponse])
 def get_random_songs(db: db_dependency):
     random_songs = db.query(models.Item).order_by(func.random()).limit(10).all()
