@@ -7,6 +7,7 @@ from database import sessionLocal, engine
 from sqlalchemy.orm import Session
 from sqlalchemy.sql.expression import func
 import uvicorn
+from recomendation_system import get_song_recommendations
 
 app = FastAPI()
 models.Base.metadata.create_all(bind=engine)
@@ -154,6 +155,11 @@ def get_user_interactions(user_id: int, db: db_dependency):
 def get_random_songs(db: db_dependency):
     random_songs = db.query(models.Item).order_by(func.random()).limit(10).all()
     return random_songs
+
+@app.get('/user/{user_id}/recommendations/', response_model=List[models.ItemResponse])
+def get_recommendations(user_id: int, db: db_dependency):
+    recommendations = get_song_recommendations(user_id, db)
+    return recommendations
 
 
 if __name__ == '__main__':
