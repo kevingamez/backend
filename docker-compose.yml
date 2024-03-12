@@ -9,10 +9,7 @@ services:
       - "8000:8000"
     depends_on:
       - db
-    # Uncomment and use the volume if needed. Ensure correct indentation and formatting.
-    # volumes:
-    #   - ./files/uploaded:/backend/files/uploaded
-
+    
   db:
     environment:
       POSTGRES_USER: 'postgres'
