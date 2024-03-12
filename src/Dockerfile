@@ -10,4 +10,4 @@ RUN pip install scikit-surprise
 
 EXPOSE 8000
 
-CMD ["sh", "-c", "uvicorn main:app --reload"]
+CMD ["sh", "-c", "uvicorn main:app --host 0.0.0.0"]
