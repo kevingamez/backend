@@ -1,13 +1,13 @@
 from sqlalchemy.orm import Session
-from models import Interaction, Song
+from models import Interactions, Item
 from joblib import load
 
 modelo = load('modelo_algo_cosine.joblib')
 
 def get_song_recommendations(user_id: int, db: Session):
-    all_songs = db.query(Song).all()
+    all_songs = db.query(Item).all()
 
-    user_interactions = db.query(Interaction).filter(Interaction.user_id == user_id).all()
+    user_interactions = db.query(Interactions).filter(Interactions.user_id == user_id).all()
     user_known_songs = [interaction.item_id for interaction in user_interactions]
 
     predictions = []
