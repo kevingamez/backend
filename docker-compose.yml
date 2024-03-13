@@ -12,9 +12,9 @@ services:
     
   db:
     environment:
-      POSTGRES_USER: 'postgres'
-      POSTGRES_PASSWORD: 'password'
-      POSTGRES_DB: 'db'
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: db
     image: "postgres:latest"
     networks:
       - web_net
@@ -33,7 +33,11 @@ services:
       PGADMIN_DEFAULT_PASSWORD: "password"
     ports:
       - "5050:80"
-
+    depends_on:
+      - db
+    
+    networks:
+      - web_net
 
 networks:
   web_net:
