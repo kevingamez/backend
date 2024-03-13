@@ -162,5 +162,18 @@ def get_recommendations(user_id: int, db: db_dependency):
     return recommendations
 
 
+@app.patch('/recomendations/{recomendation_id}', response_model=models.RecomendationResponse)
+def update_recomendation(recomendation_id: int, recomendation_update: models.RecomendationUpdate, db: db_dependency):
+    db_recomendation = db.query(models.Recomendation).filter(models.Recomendation.id == recomendation_id).first()
+    
+    if db_recomendation is None:
+        raise HTTPException(status_code=404, detail='Recomendation not found')
+    
+    db_recomendation.status = recomendation_update.status
+    db.commit()
+    
+    return db_recomendation
+
+
 if __name__ == '__main__':
     uvicorn.run(app, host='0.0.0.0', port=8000)

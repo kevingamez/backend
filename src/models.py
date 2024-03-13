@@ -2,7 +2,8 @@ from sqlalchemy import Boolean, Column, ForeignKey, Integer, String, Float, Enum
 from database import Base
 import enum
 from pydantic import BaseModel
-from typing import Optional
+from sqlalchemy import ARRAY
+from typing import List, Optional  # Importar List y Optional para el nuevo campo
 
 
 
@@ -25,9 +26,8 @@ class Item(Base):
 class RecomendationStatus(enum.Enum):
     positive = 'positive'
     negative = 'negative'
-    undefined = 'undefined'
-    user_id = Column(Integer, ForeignKey('users.id'))
-    item_id = Column(Integer, ForeignKey('songs.id'))
+    undefined = 'None'
+  
 
 class Recomendation(Base):
     __tablename__= 'recomendations'
@@ -35,6 +35,7 @@ class Recomendation(Base):
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey('users.id'))
     item_id = Column(Integer, ForeignKey('songs.id'))
+    neighbors = Column(ARRAY(String), nullable=True) 
     status = Column(Enum(RecomendationStatus))
     
     
@@ -60,6 +61,11 @@ class RecomendationResponse(BaseModel):
     user_id: int
     item_id: int
     status: RecomendationStatus
+    neighbors: Optional[List[str]] = None
+    
+class RecomendationUpdate(BaseModel):
+    status: RecomendationStatus
+
     
 class InteractionsResponse(BaseModel):
     id: int

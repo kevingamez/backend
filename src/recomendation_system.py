@@ -23,3 +23,14 @@ def get_song_recommendations(user_id: int, db: Session):
     top_recommendations = predictions[:N]
 
     return top_recommendations
+
+
+def get_neighbors(k):
+    neighbors_dict = {}
+    for user_id_inner in modelo.trainset.all_users():
+        neighbors_inner_ids = modelo.get_neighbors(user_id_inner, k)
+        user_id_raw = modelo.trainset.to_raw_uid(user_id_inner)
+        neighbors_raw_ids = [modelo.trainset.to_raw_uid(inner_id) for inner_id in neighbors_inner_ids]
+        neighbors_dict[user_id_raw] = neighbors_raw_ids
+
+    return neighbors_dict
