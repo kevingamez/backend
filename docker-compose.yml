@@ -20,6 +20,7 @@ services:
       - web_net
     volumes:
       - ./data:/var/lib/postgresql/data
+      - ./csv-data:/var/lib/postgresql/csv-data
     ports:
       - "5432:5432"
     expose:
