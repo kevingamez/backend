@@ -4,3 +4,4 @@ csv-data/unique_songs.csv filter=lfs diff=lfs merge=lfs -text
 csv-data/unique_users.csv filter=lfs diff=lfs merge=lfs -text
 csv-data/init.sql filter=lfs diff=lfs merge=lfs -text
 csv-data/interaction.csv filter=lfs diff=lfs merge=lfs -text
+csv-data filter=lfs diff=lfs merge=lfs -text

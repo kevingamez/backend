@@ -26,7 +26,7 @@ class Item(Base):
 class RecomendationStatus(enum.Enum):
     positive = 'positive'
     negative = 'negative'
-    undefined = 'None'
+    undefined = 'undefined'
   
 
 class Recomendation(Base):
@@ -35,8 +35,9 @@ class Recomendation(Base):
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey('users.id'))
     item_id = Column(Integer, ForeignKey('songs.id'))
+    pred = Column(Float)
     neighbors = Column(ARRAY(String), nullable=True) 
-    status = Column(Enum(RecomendationStatus))
+    status = Column(Enum(RecomendationStatus), nullable=True)
     
     
 class Interactions(Base):
@@ -60,6 +61,7 @@ class RecomendationResponse(BaseModel):
     id: int
     user_id: int
     item_id: int
+    pred: float
     status: RecomendationStatus
     neighbors: Optional[List[str]] = None
     
