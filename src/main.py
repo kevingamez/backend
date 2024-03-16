@@ -66,10 +66,16 @@ def read_root():
 
 @app.post('/signup/', response_model=models.UserResponse)
 def signup(user: User, db: db_dependency):
+    existing_user = db.query(models.User).filter(models.User.username == user.username).first()
+    if existing_user:
+        raise HTTPException(status_code=400, detail="Username already exists")
+
     db_user = models.User(username=user.username, password=user.password, country=user.country)
     db.add(db_user)
     db.commit()
-    return db_user
+    db.refresh(db_user)  
+    return models.UserResponse(id=db_user.id, username=db_user.username, country=db_user.country)
+
 
 @app.post('/login/', response_model=models.UserResponse)
 def login(user: User, db: db_dependency):
