@@ -178,22 +178,60 @@ def get_random_songs(db: db_dependency):
 
 @app.get('/user/{user_id}/recommendations/', response_model=List[models.ItemResponse])
 def get_recommendations(user_id: int, db: db_dependency):
-    recommendations = get_song_recommendations(user_id, db)
-    return recommendations
+    
+    interactions = db.query(models.Interactions).filter(models.Interactions.user_id == user_id).all()
+
+    # Construir mainstream_preferences a partir de las interacciones
+    mainstream_preferences = []
+    for interaction in interactions:
+        # Para cada interacción, encontrar el nombre de la canción correspondiente
+        song = db.query(models.Item).filter(models.Item.id == interaction.item_id).first()
+        if song:  # Asegurarse de que la canción existe
+            preference = {
+                'userid': user_id,
+                'traname': song.title,
+                'frecuencia': 1  # Asumiendo que la frecuencia es siempre 1 según tu requisito
+            }
+            mainstream_preferences.append(preference)
+    print(mainstream_preferences)
+    song_recommendations = get_song_recommendations(mainstream_preferences)
+
+    # Crear y guardar las recomendaciones en la base de datos
+    recommended_items = []
+    for song_id, rating in song_recommendations:
+        item = db.query(models.Item).filter(models.Item.title == song_id).first()
+        print(item)
+        if item is None:
+            continue  
+
+        # Aquí deberías usar models.Recomendation (SQLAlchemy) en lugar de Recomendation (Pydantic)
+        recommendation = models.Recomendation(
+            user_id=user_id,
+            item_id=item.id,
+            pred=rating,  # Asegúrate de que este campo existe y es correcto.
+            status=models.RecomendationStatus.undefined  # Asegúrate de que este es el valor correcto según tu diseño.
+        )
+        
+        db.add(recommendation)
+        db.commit()
+        
+        recommended_items.append(models.ItemResponse(id=item.id, title=item.title))
+
+    return recommended_items
 
 
-@app.patch('/recomendations/{recomendation_id}', response_model=models.RecomendationResponse)
-def update_recomendation(recomendation_id: int, recomendation_update: models.RecomendationUpdate, db: db_dependency):
-    db_recomendation = db.query(models.Recomendation).filter(models.Recomendation.id == recomendation_id).first()
+@app.patch('/recommendations/{recommendation_id}', response_model=models.RecomendationResponse)
+def update_recommendation_status(recommendation_id: int, recommendation_update: models.RecommendationUpdate, db: db_dependency):
+    recommendation = db.query(models.Recomendation).filter(models.Recomendation.id == recommendation_id).first()
+
+    if recommendation is None:
+        raise HTTPException(status_code=404, detail='Recommendation not found')
     
-    if db_recomendation is None:
-        raise HTTPException(status_code=404, detail='Recomendation not found')
-    
-    db_recomendation.status = recomendation_update.status
+    recommendation.status = recommendation_update.status
     db.commit()
+    db.refresh(recommendation)
     
-    return db_recomendation
-
+    return recommendation
 
 if __name__ == '__main__':
     uvicorn.run(app, host='0.0.0.0', port=8000)

@@ -75,3 +75,6 @@ class InteractionsResponse(BaseModel):
     item_id: int
     rating: float
     
+    
+class RecommendationUpdate(BaseModel):
+    status: RecomendationStatus
