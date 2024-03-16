@@ -6,3 +6,4 @@ src/__pycache__/env.cpython-36.pyc
 src/env/__pycache__
 src/*.joblib
 *.csv
+data
