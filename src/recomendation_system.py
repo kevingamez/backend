@@ -5,7 +5,7 @@ from joblib import load
 from surprise import Dataset, Reader
 import pandas as pd
 
-modelo = load('pearson.joblib')
+""" modelo = load('pearson.joblib')
 
 def get_song_recommendations(user_id: int, db: Session):
     all_songs = db.query(Item).all()
@@ -94,3 +94,4 @@ print("Top 10 recommendations for the new user:")
 for item, rating in new_user_predictions[:10]:
     print(f"{item}: {rating}")
 
+ """
