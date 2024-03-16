@@ -9,7 +9,9 @@ services:
       - "8000:8000"
     depends_on:
       - db
-    
+    volumes:
+      - ./csv-data:/backend/csv-data
+
   db:
     environment:
       POSTGRES_USER: postgres
@@ -25,20 +27,6 @@ services:
       - "5432:5432"
     expose:
       - "5432"
-
-
-  pgadmin:
-    image: dpage/pgadmin4
-    environment:
-      PGADMIN_DEFAULT_EMAIL: "kevingamez.kg@gmail.com"
-      PGADMIN_DEFAULT_PASSWORD: "password"
-    ports:
-      - "5050:80"
-    depends_on:
-      - db
-    
-    networks:
-      - web_net
 
 networks:
   web_net:
