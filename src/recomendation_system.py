@@ -5,7 +5,7 @@ from joblib import load
 from surprise import Dataset, Reader
 import pandas as pd
 
-""" modelo = load('pearson.joblib')
+modelo = load('pearson.joblib')
 
 def get_song_recommendations(user_id: int, db: Session):
     all_songs = db.query(Item).all()
@@ -27,6 +27,8 @@ def get_song_recommendations(user_id: int, db: Session):
 
     return top_recommendations
 
+
+""" 
 
 def get_neighbors(k):
     neighbors_dict = {}
