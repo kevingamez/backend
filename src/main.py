@@ -21,7 +21,7 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
     allow_credentials=True,
-    allow_methods=["POST", "GET"],
+    allow_methods=["POST", "GET", "PATCH"],
     allow_headers=["*"],
 )
 models.Base.metadata.create_all(bind=engine)
@@ -163,7 +163,7 @@ def get_interaction(interaction_id: int, db: db_dependency):
 
 @app.get('/user/{user_id}/recomendations/', response_model=List[models.RecomendationResponse])
 def get_user_recomendations(user_id: int, db: db_dependency):
-    recomendations = db.query(models.Recomendation).filter(models.Recomendation.user_id == user_id).all()
+    recomendations = db.query(models.Recomendation).filter(models.Recomendation.user_id == user_id).limit(100)
     return recomendations
 
 @app.get('/user/{user_id}/interactions/', response_model=List[models.InteractionsResponse])
