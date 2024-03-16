@@ -21,6 +21,7 @@ class Item(Base):
     
     id = Column(Integer, primary_key=True, index=True)
     title = Column(String, index=True)
+    artist = Column(String, nullable=True)
     
 
 class RecomendationStatus(enum.Enum):
@@ -56,6 +57,7 @@ class UserResponse(BaseModel):
 class ItemResponse(BaseModel):
     id: int
     title: str
+    artist: Optional[str]
     
 class RecomendationResponse(BaseModel):
     id: int

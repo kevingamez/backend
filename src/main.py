@@ -104,7 +104,7 @@ def get_user(user_id: int, db: db_dependency):
 
 @app.post('/songs/', response_model=models.ItemResponse)
 def create_item(item: Item, db: db_dependency):
-    db_item = models.Item(title=item.title)
+    db_item = models.Item(title=item.title, artist=item.artist)
     db.add(db_item)
     db.commit()
     return db_item
