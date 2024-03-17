@@ -17,6 +17,19 @@ def get_neighbors(k):
 
     return neighbors_dict
 
+def get_neighbors(user_id, k=10):
+    df = pd.read_csv('/backend/csv-data/data.csv')
+    print(user_id)
+    reader = Reader(rating_scale=(1, 5))
+    data = Dataset.load_from_df(df[['userid', 'traname', 'frecuencia']], reader)
+    trainset = data.build_full_trainset()
+    if not modelo.trainset:
+        modelo.fit(trainset)
+    inner_uid = trainset.to_inner_uid(user_id)
+    neighbors = modelo.get_neighbors(inner_uid, k=k)
+    neighbors_ids = [trainset.to_raw_uid(inner_id) for inner_id in neighbors]
+    return neighbors_ids
+
 
 
 def get_song_recommendations(mainstream_preferences):

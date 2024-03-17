@@ -11,6 +11,7 @@ services:
       - db
     volumes:
       - ./csv-data:/backend/csv-data
+    mem_limit: 15g 
 
   db:
     environment:

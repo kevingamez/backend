@@ -8,7 +8,7 @@ import uvicorn
 from pydantic import BaseModel
 from typing import List, Annotated
 import enum
-from recomendation_system import get_song_recommendations
+from recomendation_system import get_song_recommendations, get_neighbors
 
 app = FastAPI()
 origins = [
@@ -136,9 +136,38 @@ def get_recomendations(db: db_dependency):
 @app.get('/recomendations/{recomendation_id}', response_model=models.RecomendationResponse)
 def get_recomendation(recomendation_id: int, db: db_dependency):
     recomendation = db.query(models.Recomendation).filter(models.Recomendation.id == recomendation_id).first()
+    user = db.query(models.User).filter(models.User.id == recomendation.user_id).first()
     if recomendation is None:
         raise HTTPException(status_code=404, detail='Recomendation not found')
+
+    try:
+        # Attempt to obtain neighbors for the user related to the recommendation
+        neighbors_ids = get_neighbors(user.username, k=10)
+    except ValueError as e:
+        print(e)
+        # If the user is not in the trainset, set neighbors_ids to an empty list
+        neighbors_ids = []
+
+    # Set the neighbors field in the recommendation
+    recomendation.neighbors = neighbors_ids
+
     return recomendation
+
+@app.get('/user/{user_id}/neighbors/', response_model=List[str])
+def get_user_neighbors(user_id: int, db: db_dependency):
+    print(user_id)
+    user = db.query(models.User).filter(models.User.id == user_id).first()
+    if user is None:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    try:
+        neighbors_ids = get_neighbors(user.username, k=10)
+    except ValueError as e:
+       
+        neighbors_ids = []
+
+    return neighbors_ids
+
 
 @app.post('/interactions/', response_model=models.InteractionsResponse)
 def create_interaction(interaction: Interactions, db: db_dependency):
@@ -162,9 +191,52 @@ def get_interaction(interaction_id: int, db: db_dependency):
 
 
 @app.get('/user/{user_id}/recomendations/', response_model=List[models.RecomendationResponse])
-def get_user_recomendations(user_id: int, db: db_dependency):
-    recomendations = db.query(models.Recomendation).filter(models.Recomendation.user_id == user_id).limit(100)
-    return recomendations
+def get_user_recommendations(user_id: int, db: db_dependency):
+    recommendations = db.query(models.Recomendation).filter(models.Recomendation.user_id == user_id).limit(100).all()
+    
+    # Check if the list of recommendations is empty
+    if not recommendations:
+        # Get user interactions
+        interactions = db.query(models.Interactions).filter(models.Interactions.user_id == user_id).all()
+        mainstream_preferences = []
+        for interaction in interactions:
+            song = db.query(models.Item).filter(models.Item.id == interaction.item_id).first()
+            if song:  
+                preference = {
+                    'userid': user_id,
+                    'traname': song.title,
+                    'frecuencia': 1  # Adjust frequency as necessary
+                }
+                mainstream_preferences.append(preference)
+
+        # Generate new song recommendations
+        song_recommendations = get_song_recommendations(mainstream_preferences)
+
+        recommended_items = []
+        for song_id, rating in song_recommendations:
+            item = db.query(models.Item).filter(models.Item.title == song_id).first()
+            if item is None:
+                continue  
+
+            # Create a new recommendation
+            new_recommendation = models.Recomendation(
+                user_id=user_id,
+                item_id=item.id,
+                pred=rating,  # Ensure this field exists and is correct
+                status=models.RecomendationStatus.undefined  # Ensure this is the correct value according to your design
+            )
+            
+            # Save the new recommendation to the database
+            db.add(new_recommendation)
+            db.commit()
+            db.refresh(new_recommendation)
+            
+            recommended_items.append(new_recommendation)
+
+        return recommended_items  # Return the list of new recommendations
+
+    # Return the existing recommendations if there are any
+    return recommendations
 
 @app.get('/user/{user_id}/interactions/', response_model=List[models.InteractionsResponse])
 def get_user_interactions(user_id: int, db: db_dependency):
@@ -180,23 +252,19 @@ def get_random_songs(db: db_dependency):
 def get_recommendations(user_id: int, db: db_dependency):
     
     interactions = db.query(models.Interactions).filter(models.Interactions.user_id == user_id).all()
-
-    # Construir mainstream_preferences a partir de las interacciones
     mainstream_preferences = []
     for interaction in interactions:
-        # Para cada interacción, encontrar el nombre de la canción correspondiente
         song = db.query(models.Item).filter(models.Item.id == interaction.item_id).first()
-        if song:  # Asegurarse de que la canción existe
+        if song:  
             preference = {
                 'userid': user_id,
                 'traname': song.title,
-                'frecuencia': 1  # Asumiendo que la frecuencia es siempre 1 según tu requisito
+                'frecuencia': 1  
             }
             mainstream_preferences.append(preference)
     print(mainstream_preferences)
     song_recommendations = get_song_recommendations(mainstream_preferences)
 
-    # Crear y guardar las recomendaciones en la base de datos
     recommended_items = []
     for song_id, rating in song_recommendations:
         item = db.query(models.Item).filter(models.Item.title == song_id).first()
@@ -204,7 +272,6 @@ def get_recommendations(user_id: int, db: db_dependency):
         if item is None:
             continue  
 
-        # Aquí deberías usar models.Recomendation (SQLAlchemy) en lugar de Recomendation (Pydantic)
         recommendation = models.Recomendation(
             user_id=user_id,
             item_id=item.id,
